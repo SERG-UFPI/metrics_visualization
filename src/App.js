@@ -16,8 +16,7 @@ export default function App() {
       values.push(metrics[key][curr])
     }
 
-    console.log(values)
-
+    //Uma métric especific
     boxes.push(
       {
         y: values,
@@ -28,6 +27,21 @@ export default function App() {
         pointpos: -1.8,
         boxmean: false
       })
+
+    /*
+    boxes.push(
+      {
+        //Valor dessa métrica, no reposito X
+        // y: [iluwatar/java-design-patterns], 
+        y: [data['iluwatar/java-design-patterns']],
+        x: [key],
+        name: key,
+        marker:
+        {
+          size: 7
+        }
+      })
+      */
   }
 
   var layout =
@@ -35,7 +49,7 @@ export default function App() {
     title: 'Metrics',
     yaxis:
     {
-      type: 'log',
+      //type: 'log',
       autorange: true,
       showgrid: true,
       zeroline: true
@@ -58,7 +72,14 @@ export default function App() {
     responsive: true
   };
 
+  var items = []
+  for (var key in data) {
+    var element = (<li>{<span>{key}: {data[key]}</span>}</li>)
+    items.push(element)
+  }
+
   return (
+    <div>
       <div>
         <Plot
           data={boxes}
@@ -66,5 +87,16 @@ export default function App() {
           config={config}
         />
       </div>
+      <div>
+        <Plot
+          data={boxes}
+          layout={layout}
+          config={config}
+        />
+      </div>
+      <ul>
+        {items.map(item => item)}
+      </ul>
+    </div>
   );
 }
