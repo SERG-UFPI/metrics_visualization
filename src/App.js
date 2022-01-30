@@ -1,63 +1,109 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
-import data from './data/issues-age-median.json'
+import data from './data/data.json'
+import { Layout, Menu, Input } from 'antd';
+import {
+  AppstoreOutlined,
+  BarChartOutlined,
+  CloudOutlined,
+  ShopOutlined,
+  TeamOutlined,
+  SearchOutlined,
+  UploadOutlined,
+  VideoCameraOutlined,
+} from '@ant-design/icons';
+import "./App.css"
 
-export default function App() {
+const { Header, Content, Footer, Sider } = Layout;
 
-  var metrics = { 'Issues age median': data }
+const getRepositoryNames = () => {
+  const repositorySet = new Set()
 
-  var boxes = []
-
-  for (var key in metrics) {
-
+  for (var metric_name in data['metrics']) {
     var values = []
 
-    for (var curr in metrics[key]) {
-      values.push(metrics[key][curr])
+    for (var repository_metric in data['metrics'][metric_name]) {
+      repositorySet.add(repository_metric)
+    }
+  }
+
+  return Array.from(repositorySet)
+}
+
+const getDashboard = (selectedRepository) => {
+  const dashboard = []
+  for (var metric_name in data['metrics']) {
+    var values = []
+
+    for (var repository_metric in data['metrics'][metric_name]) {
+      values.push(data['metrics'][metric_name][repository_metric])
     }
 
-    //Uma métric especific
-    boxes.push(
+    let box = [
+      // Box with the values from all repositories
       {
         y: values,
-        name: key,
+        name: metric_name,
         type: 'box',
         boxpoints: 'all',
         jitter: 0.3,
         pointpos: -1.8,
         boxmean: false
-      })
+      }
+    ]
 
-    /*
-    boxes.push(
-      {
-        //Valor dessa métrica, no reposito X
-        // y: [iluwatar/java-design-patterns], 
-        y: [data['iluwatar/java-design-patterns']],
-        x: [key],
-        name: key,
-        marker:
+    if (selectedRepository) {
+      if (selectedRepository in data['metrics'][metric_name]) {
+        box.push(
+          // Point with the repositories selected
+          {
+            y: [data['metrics'][metric_name][selectedRepository]],
+            name: selectedRepository,
+            x: [metric_name],
+            marker:
+            {
+              size: 7
+            }
+          }
+        )
+      }
+    }
+
+    dashboard.push({
+      box_name: metric_name,
+      box,
+      'layout': {
+        title: metric_name,
+        yaxis:
         {
-          size: 7
+          type: 'log',
+          autorange: true,
+          showgrid: true,
+          zeroline: true
         }
-      })
-      */
+      }
+    })
   }
 
-  var layout =
-  {
-    title: 'Metrics',
-    yaxis:
-    {
-      //type: 'log',
-      autorange: true,
-      showgrid: true,
-      zeroline: true
-    }
-  };
+  return dashboard
+}
 
-  var config =
-  {
+export default function App() {
+  const [selectedRepository, setSelectedRepository] = useState()
+  const [input, setInput] = useState('')
+
+  const dashboard = getDashboard(selectedRepository)
+  const repositoryNames = getRepositoryNames()
+
+  const selectRepository = (name) => {
+    if (name === selectedRepository) {
+      setSelectedRepository(undefined)
+    } else {
+      setSelectedRepository(name)
+    }
+  }
+
+  const config = {
     toImageButtonOptions:
     {
       format: 'svg',
@@ -66,37 +112,49 @@ export default function App() {
       width: 1024,
       scale: 1
     },
-
-    scrollZoom: true,
-
-    responsive: true
+    scrollZoom: false,
+    responsive: false,
   };
 
-  var items = []
-  for (var key in data) {
-    var element = (<li>{<span>{key}: {data[key]}</span>}</li>)
-    items.push(element)
-  }
+  const siderWidth = 500;
+
 
   return (
-    <div>
-      <div>
-        <Plot
-          data={boxes}
-          layout={layout}
-          config={config}
+    <Layout hasSider>
+      <Sider
+        width={siderWidth}
+      >
+        <Input
+          size="large"
+          placeholder='Search for a repository'
+          prefix={<SearchOutlined />}
+          value={input}
+          onChange={e => setInput(e.target.value)}
         />
-      </div>
-      <div>
-        <Plot
-          data={boxes}
-          layout={layout}
-          config={config}
-        />
-      </div>
-      <ul>
-        {items.map(item => item)}
-      </ul>
-    </div>
+        <Menu theme="dark" mode="inline">
+          {repositoryNames.filter(name => name.includes(input)).map((name, index) => (
+            <Menu.Item key={name} onClick={() => selectRepository(name)}>{name}</Menu.Item>
+          ))}
+        </Menu>
+      </Sider>
+      <Layout>
+        <Header />
+        <Content>
+          <div >
+            <ul>
+              {dashboard.map((item, index) => (
+                <li key={index}>
+                  <Plot
+                    data={item['box']}
+                    layout={item['layout']}
+                    config={config}
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
