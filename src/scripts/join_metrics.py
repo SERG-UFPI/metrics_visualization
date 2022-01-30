@@ -5,8 +5,6 @@ import json
 SOURCE_FILEPATH = '../data/data.json'
 METRICS_FILEPATH = 'metrics file'
 
-with open(SOURCE_FILEPATH, 'r') as f:
-        source = json.load(f)
 
 def startupCheck(path):
     if not os.path.exists(path):
@@ -14,20 +12,19 @@ def startupCheck(path):
             f.write(json.dumps({'metrics': {}}))
 
 
-def joinMetric(source, new_metric, new_metric_name):
-    source['metrics'][new_metric_name] = []
+startupCheck(SOURCE_FILEPATH)
 
-    for repo in new_metric:
-        source['metrics'][new_metric_name].append(
-            {'name': repo, 'value': new_metric[repo]})
+with open(SOURCE_FILEPATH, 'r') as f:
+    source = json.load(f)
+
+
+def joinMetric(source, new_metric, new_metric_name):
+    source['metrics'][new_metric_name] = new_metric
 
     with open(SOURCE_FILEPATH, 'w') as f:
         json.dump(source, f)
 
         print('Metric {} joined'.format(new_metric_name))
-
-
-startupCheck(SOURCE_FILEPATH)
 
 
 def getAllFilesNamesInAFolder(folder_path):
@@ -64,7 +61,7 @@ def insertAllFilesFromAFolder(source, folder_path):
         if (file.endswith('.json')):
             with open('{}/{}'.format(folder_path, file), 'r') as f:
                 new_metric = json.load(f)
-            
+
             joinMetric(source, new_metric, file[:-5])
 
 
