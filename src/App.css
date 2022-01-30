@@ -1,0 +1,12 @@
+/* .layout {
+  
+} */
+
+header {
+  margin-top: 8px;
+  font-size: x-large;
+}
+
+main {
+  display: flex;
+}
