@@ -53,7 +53,6 @@ const getDashboard = (selectedRepository) => {
     ]
 
     if (selectedRepository) {
-
       if (selectedRepository in data['metrics'][metric_name]) {
         box.push(
           // Point with the repositories selected
