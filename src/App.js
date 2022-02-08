@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import data from './data/data.json'
-import { Layout, Menu, Input } from 'antd';
+import { Layout, Menu, Input, Affix, List, Card } from 'antd';
 import {
   AppstoreOutlined,
   BarChartOutlined,
@@ -16,12 +16,12 @@ import "./App.css"
 
 const { Header, Content, Footer, Sider } = Layout;
 
+const SIDER_WIDTH = 350
+
 const getRepositoryNames = () => {
   const repositorySet = new Set()
 
   for (var metric_name in data['metrics']) {
-    var values = []
-
     for (var repository_metric in data['metrics'][metric_name]) {
       repositorySet.add(repository_metric)
     }
@@ -43,7 +43,7 @@ const getDashboard = (selectedRepository) => {
       // Box with the values from all repositories
       {
         y: values,
-        name: metric_name,
+        name: 'Metric',
         type: 'box',
         boxpoints: 'all',
         jitter: 0.3,
@@ -59,7 +59,7 @@ const getDashboard = (selectedRepository) => {
           {
             y: [data['metrics'][metric_name][selectedRepository]],
             name: selectedRepository,
-            x: [metric_name],
+            x: ['Metric'],
             marker:
             {
               size: 7
@@ -70,7 +70,6 @@ const getDashboard = (selectedRepository) => {
     }
 
     dashboard.push({
-      box_name: metric_name,
       box,
       'layout': {
         title: metric_name,
@@ -79,8 +78,8 @@ const getDashboard = (selectedRepository) => {
           type: 'log',
           autorange: true,
           showgrid: true,
-          zeroline: true
-        }
+          zeroline: true,
+        },
       }
     })
   }
@@ -91,6 +90,7 @@ const getDashboard = (selectedRepository) => {
 export default function App() {
   const [selectedRepository, setSelectedRepository] = useState()
   const [input, setInput] = useState('')
+  const [isSiderCollapsed, setIsSiderCollapsed] = useState(false)
 
   const dashboard = getDashboard(selectedRepository)
   const repositoryNames = getRepositoryNames()
@@ -109,50 +109,82 @@ export default function App() {
       format: 'svg',
       filename: 'metrics',
       height: 1024,
-      width: 1024,
+      width: 800,
       scale: 1
     },
     scrollZoom: false,
     responsive: false,
+    showEditInChartStudio: true,
+    plotlyServerURL: "https://chart-studio.plotly.com",
   };
-
-  const siderWidth = 500;
-
 
   return (
     <Layout hasSider>
-      <Sider
-        width={siderWidth}
-      >
-        <Input
-          size="large"
-          placeholder='Search for a repository'
-          prefix={<SearchOutlined />}
-          value={input}
-          onChange={e => setInput(e.target.value)}
-        />
-        <Menu theme="dark" mode="inline">
-          {repositoryNames.filter(name => name.includes(input)).map((name, index) => (
-            <Menu.Item key={name} onClick={() => selectRepository(name)}>{name}</Menu.Item>
-          ))}
-        </Menu>
-      </Sider>
+      <Affix offsetTop={0}>
+        <Sider
+          className="sider"
+          width={SIDER_WIDTH}
+          collapsible
+          collapsed={isSiderCollapsed}
+          onCollapse={(isCollapsed) => setIsSiderCollapsed(isCollapsed)}
+        >
+          {!isSiderCollapsed &&
+            <Affix offsetTop={0}>
+              <Input
+                size="large"
+                placeholder='Search for a repository'
+                prefix={<SearchOutlined />}
+                value={input}
+                onChange={e => setInput(e.target.value)}
+              />
+            </Affix>
+          }
+          <Menu
+            theme="dark"
+            mode="inline"
+            multiple
+          >
+            {!isSiderCollapsed && repositoryNames.filter(name => name
+              .includes(input))
+              .map((name, index) => (
+                <Menu.Item key={name} onClick={() => selectRepository(name)}>
+                  {name}
+                </Menu.Item>
+              ))}
+          </Menu>
+        </Sider>
+      </Affix>
       <Layout>
-        <Header />
-        <Content>
-          <div >
-            <ul>
-              {dashboard.map((item, index) => (
-                <li key={index}>
+        <Content className="content">
+          <List
+            className="content-list"
+            grid={{
+              gutter: 16,
+              column: 2,
+              xs: 1,
+              sm: 1,
+              md: 1,
+              lg: 1,
+              xl: 1,
+              xxl: 2,
+            }}
+            dataSource={dashboard}
+            renderItem={item => (
+              <List.Item>
+                <Card
+                  width={0}
+                  hoverable
+                  className="content-list-card"
+                >
                   <Plot
-                    data={item['box']}
-                    layout={item['layout']}
+                    data={item.box}
+                    layout={item.layout}
                     config={config}
                   />
-                </li>
-              ))}
-            </ul>
-          </div>
+                </Card>
+              </List.Item>
+            )}
+          />
         </Content>
       </Layout>
     </Layout>
