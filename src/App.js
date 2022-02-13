@@ -80,6 +80,7 @@ const getDashboard = (selectedRepository) => {
           showgrid: true,
           zeroline: true,
         },
+        showlegend: false,
       }
     })
   }
