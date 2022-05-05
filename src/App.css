@@ -14,6 +14,16 @@
   top: 0;
 }
 
+.token-flex-center {
+  display: flex;
+  align-items: center;
+  justify-items: center;
+}
+
+.settings-button {
+  margin-right: 8px;
+}
+
 .content {
   min-width: 100%;
   display: flex;
