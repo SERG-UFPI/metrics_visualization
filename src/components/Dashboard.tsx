@@ -117,7 +117,7 @@ export const Dashboard = ({
         boxpoints: "all",
         jitter: 0.3,
         pointpos: -1.8,
-        boxmean: false,
+        boxmean: true,
       },
       {
         y: [selectedRepositoryMetric],
